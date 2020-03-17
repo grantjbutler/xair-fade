@@ -2,10 +2,12 @@
   "name": "xair-fade",
   "version": "0.0.1",
   "description": "Provides an interface for fading in and out channels on a Behringer X-AIR mixer.",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Grant J. Butler <grantjbutler@users.noreply.github.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "osc": "^2.4.0"
+  }
 }
