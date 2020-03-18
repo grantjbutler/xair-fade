@@ -3,6 +3,7 @@ const os = require('os')
 
 const { program } = require('commander')
 const express = require('express')
+const cors = require('cors')
 
 const MixerManager = require('./mixer-manager')
 
@@ -21,6 +22,8 @@ manager.connect(program.ip, (mixer) => {
     console.info(`Connected to mixer at ${program.ip}`)
 
     let app = express()
+
+    app.use(cors())
 
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
