@@ -25,15 +25,8 @@ class MixerManager {
         })
 
         udpPort.on('open', () => {
-            console.log('[osc] Port open, can now communicate with a Behringer X32.');
-
             callback(mixer)
         });
-
-        udpPort.on('raw', (buf) => {
-            const str = buf.toString('ascii');
-            console.log(str)
-        })
 
         udpPort.open()
     }

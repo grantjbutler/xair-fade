@@ -1,6 +1,3 @@
-const osc = require('osc')
-const util = require('util')
-
 function channelNumberToString(num) {
     if (num < 10) {
         return '0' + num
@@ -14,8 +11,6 @@ class Mixer {
         this.port = port
         
         this.port.on('message', (message, time, info) => {
-            console.log(`[${time}] Received message: ${util.inspect(message)}}`)
-
             if (Object.keys(this.callbacks).includes(message.address)) {
                 let callbacks = this.callbacks[message.address]
                 callbacks.forEach(callback => {
@@ -32,6 +27,20 @@ class Mixer {
         this.fades = {}
 
         this.callbacks = {}
+    }
+
+    getChannel (channel, callback) {
+        this._send(
+            '/ch/' + channelNumberToString(channel) + '/mix',
+            (message) => {                
+                callback({
+                    isOn: message.args[0].value == 1,
+                    level: message.args[1].value,
+                    isStereoLinked: message.args[2].value == 1,
+                    pan: message.args[3].value
+                })
+            }
+        )
     }
 
     mute (channel) {
