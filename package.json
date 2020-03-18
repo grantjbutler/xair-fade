@@ -8,6 +8,7 @@
   "author": "Grant J. Butler <grantjbutler@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
+    "commander": "^5.0.0",
     "osc": "^2.4.0"
   }
 }
