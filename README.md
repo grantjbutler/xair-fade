@@ -100,3 +100,56 @@ Mutes or unmutes a channel.
     "isOn": false
 }
 ```
+
+### POST /channel/:channel/bus/:bus
+
+Gets information about a channel in the context of a specific bus.
+
+#### Responsee
+
+```json
+{
+    "level": 0.75,
+    "type": 0,
+    "pan": 0.4
+}
+```
+
+### GET /channel/:channel/bus/:bus/level
+
+Returns the level of the channel in the context of a specific bus.
+
+#### Response
+
+```json
+{
+    "level": 0.75
+}
+```
+
+### POST /channel/:channel/bus/:bus/level
+
+Sets the level of a channel in the context of a specific bus, optionally ramping to the new level over a duration in milliseconds.
+
+#### Request Body
+
+```json
+{
+    "level": 0.75
+}
+```
+
+```json
+{
+    "level": 0.75,
+    "duration": 300
+}
+```
+
+#### Response
+
+```json
+{
+    "level": 0.75
+}
+```
