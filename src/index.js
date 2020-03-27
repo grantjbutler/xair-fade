@@ -8,7 +8,7 @@ const cors = require('cors')
 const MixerManager = require('./mixer-manager')
 
 program
-    .version('0.0.1')
+    .version('0.1.0')
     .requiredOption('-i, --ip <ip>', 'Mixer IP address')
     .option('-p, --web-port <port>', 'Port on which the HTTP API will be served', 8080)
 
@@ -35,6 +35,17 @@ manager.connect(program.ip, (mixer) => {
         }
 
         req.channel = channelNumber
+
+        next()
+    })
+
+    app.param('bus', function (req, res, next, bus) {
+        let busNumber = parseInt(bus, 10)
+        if (Number.isNaN(busNumber)) {
+            next(new Error('Invalid bus number'))
+        }
+
+        req.bus = busNumber
 
         next()
     })
@@ -92,7 +103,31 @@ manager.connect(program.ip, (mixer) => {
         res.json({ isOn })
     })
 
-    app.listen(program.webPort)
+    app.get('/channel/:channel/bus/:bus', (req, res) => {
+        mixer.getChannel(req.channel, req.bus, (channel) => {
+            res.json(channel)
+        })
+    })
 
-    // mixer.fadeTo(12, 0.75, 1000)
+    app.post('/channel/:channel/bus/:bus/fader', (req, res) => {
+        let level = req.body.level
+        if (typeof level != 'number' || level > 1.0 || level < 0.0) {
+            return res.status(422).json({ error: 'Invalid level' })
+        }
+
+        let duration = req.body.duration
+        if (typeof duration != 'undefined') {
+            if (typeof duration != 'number') {
+                return res.status(422).json({ error: 'Invalid duration' })
+            }
+
+            mixer.fadeTo(req.channel, req.bus, level, duration)
+        } else {
+            mixer.setLevel(req.channel, req.bus, level)
+        }
+
+        res.json({ level })
+    })
+
+    app.listen(program.webPort)
 })

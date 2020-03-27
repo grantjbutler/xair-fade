@@ -29,18 +29,36 @@ class Mixer {
         this.callbacks = {}
     }
 
-    getChannel (channel, callback) {
-        this._send(
-            '/ch/' + channelNumberToString(channel) + '/mix',
-            (message) => {                
-                callback({
-                    isOn: message.args[0].value == 1,
-                    level: message.args[1].value,
-                    isStereoLinked: message.args[2].value == 1,
-                    pan: message.args[3].value
-                })
-            }
-        )
+    getChannel (channel, bus, callback) {
+        if (typeof bus == 'function' && callback == undefined) {
+            callback = bus
+            bus = undefined
+        }
+
+        if (bus == undefined) {
+            this._send(
+                '/ch/' + channelNumberToString(channel) + '/mix',
+                (message) => {                
+                    callback({
+                        isOn: message.args[0].value == 1,
+                        level: message.args[1].value,
+                        isStereoLinked: message.args[2].value == 1,
+                        pan: message.args[3].value
+                    })
+                }
+            )
+        } else {
+            this._send(
+                '/ch/' + channelNumberToString(channel) + '/mix/' + channelNumberToString(bus),
+                (message) => {
+                    callback({
+                        level: message.args[0].value,
+                        type: message.args[2].value,
+                        pan: message.args[3].value
+                    })
+                }
+            )
+        }
     }
 
     mute (channel) {
@@ -67,8 +85,16 @@ class Mixer {
         )
     }
 
-    fadeTo (channel, level, duration) {
-        this.level(channel, (currentLevel) => {
+    fadeTo (channel, bus, level, duration) {
+        if (duration == undefined) {
+            duration = level
+            level = bus
+            bus = undefined
+        }
+        
+        this.level(channel, bus, (currentLevel) => {
+            console.log(currentLevel)
+            
             let distance = level - currentLevel
             
             if (Math.abs(distance) < 1 / 1024) {
@@ -83,10 +109,10 @@ class Mixer {
             let runStep = () => {
                 if (stepNumber == numberOfSteps - 1) {
                     // last step, just set to the desired level
-                    this.setLevel(channel, level)
+                    this.setLevel(channel, bus, level)
                 } else {
                     currentLevel += change
-                    this.setLevel(channel, currentLevel)
+                    this.setLevel(channel, bus, currentLevel)
                 }
 
                 stepNumber++
@@ -99,15 +125,39 @@ class Mixer {
         })
     }
 
-    level (channel, callback) {
-        this._send('/ch/' + channelNumberToString(channel) + '/mix/fader', (message) => {
+    level (channel, bus, callback) {
+        if (callback == undefined) {
+            callback = bus
+            bus = undefined
+        }
+
+        let address
+        if (bus == undefined) {
+            address = '/ch/' + channelNumberToString(channel) + '/mix/fader'
+        } else {
+            address = '/ch/' + channelNumberToString(channel) + '/mix/' + channelNumberToString(bus) + '/level'
+        }
+
+        this._send(address, (message) => {
             callback(message.args[0].value)
         })
     }
 
-    setLevel (channel, level) {
+    setLevel (channel, bus, level) {
+        if (level == undefined) {
+            level = bus
+            bus = undefined
+        }
+
+        let address
+        if (bus == undefined) {
+            address = '/ch/' + channelNumberToString(channel) + '/mix/fader'
+        } else {
+            address = '/ch/' + channelNumberToString(channel) + '/mix/' + channelNumberToString(bus) + '/level'
+        }
+
         this._send(
-            '/ch/' + channelNumberToString(channel) + '/mix/fader',
+            address,
             [
                 {
                     type: 'f',
